@@ -33,7 +33,7 @@ gcloud compute instances create "jbox-cc" \
   --boot-disk-size "200" \
   --machine-type=g1-small \
   --project "${GCP_PROJECT_ID}" \
-  --zone "us-central1-a"
+  --zone "us-west1-a"
 ```
 
 ## Move to the jumpbox and log in to GCP
@@ -41,7 +41,7 @@ gcloud compute instances create "jbox-cc" \
 ```bash
 gcloud compute ssh ubuntu@jbox-cc \
   --project "${GCP_PROJECT_ID}" \
-  --zone "us-central1-a"
+  --zone "us-west1-a"
 ```
   
 ```bash
@@ -177,8 +177,8 @@ DOMAIN=${PCF_SUBDOMAIN_NAME}.${PCF_DOMAIN_NAME} ~/ops-manager-automation-cc/bin/
 cat > ~/terraform.tfvars <<-EOF
 dns_suffix             = "${PCF_DOMAIN_NAME}"
 env_name               = "${PCF_SUBDOMAIN_NAME}"
-region                 = "us-central1"
-zones                  = ["us-central1-b", "us-central1-a", "us-central1-c"]
+region                 = "us-west1"
+zones                  = ["us-west1-b", "us-west1-a", "us-west1-c"]
 project                = "$(gcloud config get-value core/project)"
 opsman_image_url       = ""
 opsman_vm              = 0
@@ -239,7 +239,7 @@ We use Control Tower to install Concourse, as follows:
 ```bash
 GOOGLE_APPLICATION_CREDENTIALS=~/gcp_credentials.json \
   control-tower deploy \
-    --region us-central1 \
+    --region us-west1 \
     --iaas gcp \
     --workers 3 \
     ${PCF_SUBDOMAIN_NAME}
@@ -252,7 +252,7 @@ This will take about 20 mins to complete.
 ```bash
 INFO=$(GOOGLE_APPLICATION_CREDENTIALS=~/gcp_credentials.json \
   control-tower info \
-    --region us-central1 \
+    --region us-west1 \
     --iaas gcp \
     --json \
     ${PCF_SUBDOMAIN_NAME}
@@ -265,7 +265,7 @@ echo "CREDHUB_SECRET=$(echo ${INFO} | jq --raw-output .config.credhub_admin_clie
 echo "CREDHUB_SERVER=$(echo ${INFO} | jq --raw-output .config.credhub_url)" >> ~/.env
 echo 'eval "$(GOOGLE_APPLICATION_CREDENTIALS=~/gcp_credentials.json \
   control-tower info \
-    --region us-central1 \
+    --region us-west1 \
     --iaas gcp \
     --env ${PCF_SUBDOMAIN_NAME})"' >> ~/.env
 
@@ -299,7 +299,7 @@ fly -t control-tower-${PCF_SUBDOMAIN_NAME} login --insecure --username admin --p
 ## Set up dedicated GCS bucket for downloads
 
 ```bash
-gsutil mb -c regional -l us-central1 gs://${PCF_SUBDOMAIN_NAME}-concourse-resources
+gsutil mb -c regional -l us-west1 gs://${PCF_SUBDOMAIN_NAME}-concourse-resources
 gsutil versioning set on gs://${PCF_SUBDOMAIN_NAME}-concourse-resources
 ```
 
@@ -392,7 +392,7 @@ om delete-installation
 Delete the Ops Manager VM:
 
 ```bash
-gcloud compute instances delete "ops-manager-vm" --zone "us-central1-a" --quiet
+gcloud compute instances delete "ops-manager-vm" --zone "us-west1-a" --quiet
 ```
 
 Unwind the remaining PCF infrastructure:
@@ -407,7 +407,7 @@ Unintstall Concourse with `control-tower`:
 ```bash
 GOOGLE_APPLICATION_CREDENTIALS=~/gcp_credentials.json \
   control-tower destroy \
-    --region us-central1 \
+    --region us-west1 \
     --iaas gcp \
     ${PCF_SUBDOMAIN_NAME}
 ```
